@@ -2,7 +2,7 @@
 #import <CoreData/CoreData.h>
 
 #define MODEL_NAME @""
-#define FILE_NAME @""
+#define FILE_NAME  @""
 
 @implementation ISDataManager
 
@@ -61,6 +61,10 @@ static ISDataManager *_sharedInstance = nil;
     if (__managedObjectModel != nil) {
         return __managedObjectModel;
     }
+    NSString *modelName = MODEL_NAME;
+    if (![modelName length]) {
+        modelName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+    }
     NSURL *modelURL = [[NSBundle mainBundle] URLForResource:MODEL_NAME withExtension:@"momd"];
     __managedObjectModel = [[NSManagedObjectModel alloc] initWithContentsOfURL:modelURL];
     return __managedObjectModel;
@@ -72,7 +76,12 @@ static ISDataManager *_sharedInstance = nil;
         return __persistentStoreCoordinator;
     }
     
-    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:FILE_NAME];
+    NSString *fileName = FILE_NAME;
+    if (![FILE_NAME length]) {
+        fileName = [[[NSBundle mainBundle] infoDictionary] objectForKey:@"CFBundleName"];
+        fileName = [fileName stringByAppendingString:@".sqlite"];
+    }
+    NSURL *storeURL = [[self applicationDocumentsDirectory] URLByAppendingPathComponent:fileName];
     NSError *error = nil;
     __persistentStoreCoordinator = [[NSPersistentStoreCoordinator alloc] initWithManagedObjectModel:[self managedObjectModel]];
     if (![__persistentStoreCoordinator addPersistentStoreWithType:NSSQLiteStoreType configuration:nil URL:storeURL options:nil error:&error]) {
